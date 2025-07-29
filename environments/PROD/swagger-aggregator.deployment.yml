@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swagger-aggregator
+  annotations:
+    mia-platform.eu/version: 14.1.0
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
+    apparmor.security.beta.kubernetes.io/defaultProfileName: runtime/default
+    fluentbit.io/parser: pino
+  labels:
+    app: swagger-aggregator
+    app.kubernetes.io/name: swagger-aggregator
+    app.kubernetes.io/version: 3.9.4
+    app.kubernetes.io/component: custom
+    app.kubernetes.io/part-of: frengo-test-github-13
+    app.kubernetes.io/managed-by: mia-platform
+    mia-platform.eu/stage: PROD
+    mia-platform.eu/tenant: 6b38a8ec-816c-487c-986d-c59edb294ea6
+    mia-platform.eu/log-type: mia-json
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swagger-aggregator
+  strategy:
+    type: RollingUpdate
+  revisionHistoryLimit: 1
+  template:
+    metadata:
+      annotations:
+        apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
+        apparmor.security.beta.kubernetes.io/defaultProfileName: runtime/default
+        fluentbit.io/parser: pino
+      labels:
+        app: swagger-aggregator
+        app.kubernetes.io/name: swagger-aggregator
+        app.kubernetes.io/version: 3.9.4
+        app.kubernetes.io/component: custom
+        app.kubernetes.io/part-of: frengo-test-github-13
+        app.kubernetes.io/managed-by: mia-platform
+        mia-platform.eu/stage: PROD
+        mia-platform.eu/tenant: 6b38a8ec-816c-487c-986d-c59edb294ea6
+        mia-platform.eu/log-type: mia-json
+    spec:
+      imagePullSecrets:
+        - name: nexus-gcloud
+      terminationGracePeriodSeconds: 30
+      serviceAccountName: swagger-aggregator
+      containers:
+        - name: swagger-aggregator
+          image: nexus.mia-platform.eu/core/swagger-aggregator:3.9.4
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 300Mi
+              cpu: 300m
+            requests:
+              memory: 150Mi
+              cpu: 150m
+          volumeMounts:
+            - name: swagger-aggregator-config
+              mountPath: /home/node/app/configs
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          args: []
+          env:
+            - name: HTTP_PORT
+              value: '3000'
+            - name: LOG_LEVEL
+              value: 'info'
+            - name: TRUSTED_PROXIES
+              value: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+            - name: CONFIG_FILE_PATH
+              value: /home/node/app/configs/config.json
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              port: http
+              path: /-/ready
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 1
+            failureThreshold: 3
+            httpGet:
+              port: http
+              path: /-/healthz
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+      volumes:
+        - name: swagger-aggregator-config
+          configMap:
+            name: swagger-aggregator-config
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault

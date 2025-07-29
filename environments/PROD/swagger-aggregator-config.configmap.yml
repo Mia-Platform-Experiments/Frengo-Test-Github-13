@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  config.json: '{"title":"Frengo - Test GitHub 13","version":"3fbc953b-6c01-4642-974b-6659e8a46e5c","services":[],"securityInfo":{"/api/openapi/*":{},"/api/openapi":{},"/api/openapi/raw/*":{},"/api/openapi/raw":{}},"baseSwagger":{"swagger":"2.0","consumes":["application/json"],"produces":["application/json"],"securityDefinitions":{"APISecretHeader":{"type":"apiKey","in":"header","name":"secret"}}},"description":"Frengo - Test GitHub 13"}'
+kind: ConfigMap
+metadata:
+  name: swagger-aggregator-config
+  labels:
+    app.kubernetes.io/part-of: frengo-test-github-13
+    app.kubernetes.io/managed-by: mia-platform
+    mia-platform.eu/stage: PROD
+    mia-platform.eu/tenant: 6b38a8ec-816c-487c-986d-c59edb294ea6
